@@ -84,7 +84,7 @@ const register = async (request, response) => {
     const hash = await bcrypt.hash(password, salt);
     await pool.query('INSERT INTO users (name, email, password) VALUES ($1, $2, $3)', [name, email, hash]);
 
-    const token = signToken({ email }, '900s');
+    const token = signToken({ email }, '8h');
     sendTokenEmail(token, email);
     return response.status(201).send('User registered');
 };
