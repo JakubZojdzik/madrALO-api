@@ -168,7 +168,9 @@ const solves = async (request, response) => {
 };
 
 const ranking = async (request, response) => {
-    const dbRes = await pool.query('SELECT name, points FROM users WHERE admin = 0 AND verified = true ORDER BY points DESC, submitted_ac ASC');
+    const dbRes = await pool.query(
+        'SELECT name, points FROM users WHERE admin = 0 AND verified = true ORDER BY points DESC, submitted_ac ASC, name ASC',
+    );
     const dbRows = dbRes.rows;
     for (let i = 0; i < dbRes.rows.length; i += 1) {
         dbRows[i].position = i + 1;
