@@ -16,9 +16,3 @@ jobs:
                   port: ${{ secrets.PORT }}
                   username: ${{ secrets.USERNAME }}
                   key: ${{ secrets.PRIVATE_KEY }}
-                  script: |
-                      cd ~/services/SOK-api/
-                      git pull origin master
-                      cd ~/services/
-                      docker compose up -d --build madralo-api
-                      docker compose restart nginx
