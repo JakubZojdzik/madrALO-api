@@ -2,7 +2,7 @@ name: Deploy to VPS
 
 on:
     push:
-        branches: ["master"]
+        branches: ['master']
 
 jobs:
     build:
@@ -10,15 +10,15 @@ jobs:
 
         steps:
             - name: Deploy using ssh
-              uses: https://github.com/appleboy/ssh-action@master
+              uses: appleboy/ssh-action@v1.0.3
               with:
                   host: ${{ secrets.HOST }}
                   port: ${{ secrets.PORT }}
                   username: ${{ secrets.USERNAME }}
                   key: ${{ secrets.PRIVATE_KEY }}
                   script: |
-                      cd services/SOK-api/
+                      cd ${{ secrets.SERVICES_PATH }}/SOK-api/
                       git pull origin master
-                      docker build . -t sok-api:latest
-                      cd ../
-                      docker compose up -d sok-api
+                      cd ${{ secrets.SERVICES_PATH }}/
+                      docker compose up -d --build ${{ secrets.CONTAINER_NAME }}
+                      docker compose restart nginx
