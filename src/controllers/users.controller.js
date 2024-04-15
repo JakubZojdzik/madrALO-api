@@ -169,7 +169,23 @@ const solves = async (request, response) => {
 
 const ranking = async (request, response) => {
     const dbRes = await pool.query(
-        'SELECT name, points FROM users WHERE admin = 0 AND verified = true ORDER BY points DESC, submitted_ac ASC, name ASC',
+        `
+        SELECT
+            u.name,
+            COALESCE(SUM(CASE WHEN s.correct = true THEN c.points ELSE -1 END), 0) AS points
+        FROM
+            users u
+        JOIN
+            submits s ON u.id = s.usr_id
+        JOIN
+            challenges c ON s.chall_id = c.id
+        WHERE
+            admin = 0 AND verified = true
+        GROUP BY
+            u.id, u.name
+        ORDER BY
+            points DESC, MAX(s.sent) ASC, u.name;
+        `,
     );
     const dbRows = dbRes.rows;
     for (let i = 0; i < dbRes.rows.length; i += 1) {
