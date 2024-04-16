@@ -141,7 +141,7 @@ const login = async (request, response) => {
     const baseHash = dbRes.rows[0].password;
     const cmpRes = await bcrypt.compare(password, baseHash);
     if (cmpRes) {
-        const token = signToken({ id: dbRes.rows[0].id }, '21600s');
+        const token = signToken({ id: dbRes.rows[0].id }, '43200s');
         return response.status(200).send({ token, email: dbRes.rows[0].email, name: dbRes.rows[0].name });
     }
     return response.status(401).send('Nieprawidłowe dane!');
