@@ -10,30 +10,30 @@
 name: ESLint
 
 on:
-  push:
-    branches: [ "master" ]
-  pull_request:
-    # The branches below must be a subset of the branches above
-    branches: [ "master" ]
+    push:
+        branches: ['master']
+    pull_request:
+        # The branches below must be a subset of the branches above
+        branches: ['master']
 
 jobs:
-  eslint:
-    name: Run eslint scanning
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      security-events: write
-      actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+    eslint:
+        name: Run eslint scanning
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+            security-events: write
+            actions: read # only required for a private repository by github/codeql-action/upload-sarif to get the Action run status
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v3
 
-      - name: Install packages
-        run: |
-          npm install
+            - name: Install packages
+              run: |
+                  npm install
 
-      - name: Run ESLint
-        run: npx eslint .
-          --config .eslintrc.js
-          --ext .js
-        continue-on-error: false
+            - name: Run ESLint
+              run: npx eslint .
+                  --config .eslintrc.js
+                  --ext .js
+              continue-on-error: false
