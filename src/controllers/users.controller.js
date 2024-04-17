@@ -80,6 +80,11 @@ const register = async (request, response) => {
         return response.status(401).send('Konto o danym mailu lub nazwie już istnieje!');
     }
 
+    const unverified = await pool.query('SELECT id FROM users WHERE verified = false AND email = $1', [email]);
+    if (unverified.rowCount) {
+        pool.query('DELETE FROM users WHERE id = $1', [unverified.rows[0].id]);
+    }
+
     const salt = await bcrypt.genSalt(10);
     const hash = await bcrypt.hash(password, salt);
     await pool.query('INSERT INTO users (name, email, password) VALUES ($1, $2, $3)', [name, email, hash]);
