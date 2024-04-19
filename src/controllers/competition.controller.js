@@ -2,7 +2,7 @@ const fs = require('fs');
 const yaml = require('js-yaml');
 const multer = require('multer');
 const path = require('path');
-const isAdmin = require('../utils/isAdmin');
+const isAdminUtil = require('../utils/isAdminUtil');
 
 const competitionConf = yaml.load(fs.readFileSync(process.env.SOK_CONFIG, 'utf8'));
 
@@ -17,7 +17,7 @@ const getTimeRange = (request, response) => {
 const edit = async (request, response) => {
     const { id, title, rules, start, end } = request.body;
 
-    const admin = await isAdmin(id);
+    const admin = await isAdminUtil(id);
     if (!admin) {
         return response.status(403).send('You dont have permissions');
     }
@@ -43,7 +43,7 @@ const upload = multer({ storage });
 const uploadIcon = async (request, response) => {
     const { id } = request.body;
 
-    const admin = await isAdmin(id);
+    const admin = await isAdminUtil(id);
     if (!admin) {
         return response.status(403).send('You dont have permissions');
     }

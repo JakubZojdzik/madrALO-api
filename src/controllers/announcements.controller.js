@@ -1,5 +1,5 @@
 const pool = require('../services/db.service');
-const isAdmin = require('../utils/isAdmin');
+const isAdminUtil = require('../utils/isAdminUtil');
 
 const getCurrent = async (request, response) => {
     const results = await pool.query("SELECT * FROM announcements WHERE added <= now() AT TIME ZONE 'CEST' ORDER BY added DESC");
@@ -12,7 +12,7 @@ const getInactive = async (request, response) => {
         return response.status(403).send('Not permitted!');
     }
 
-    const admin = await isAdmin(id);
+    const admin = await isAdminUtil(id);
     if (!admin) {
         return response.status(403).send('Not permitted');
     }
@@ -30,7 +30,7 @@ const getById = async (request, response) => {
     const { annId } = request.query;
 
     let tmp = " AND added <= now() AT TIME ZONE 'CEST'";
-    const admin = await isAdmin(id);
+    const admin = await isAdminUtil(id);
     if (admin) {
         tmp = '';
     } else if (new Date(Date.parse(process.env.COMPETITION_START)) >= new Date().fixZone()) {
@@ -51,7 +51,7 @@ const getById = async (request, response) => {
 
 const add = async (request, response) => {
     const { id, title, content, author, added } = request.body;
-    const admin = await isAdmin(id);
+    const admin = await isAdminUtil(id);
     if (!admin) {
         return response.status(403).send('You have to be admin');
     }
@@ -70,7 +70,7 @@ const add = async (request, response) => {
 
 const edit = async (request, response) => {
     const { id, annId, title, content, author, added } = request.body;
-    const admin = await isAdmin(id);
+    const admin = await isAdminUtil(id);
     if (!admin) {
         return response.status(403).send('You have to be admin');
     }
@@ -89,7 +89,7 @@ const edit = async (request, response) => {
 
 const remove = async (request, response) => {
     const { id, annId } = request.body;
-    const admin = isAdmin(id);
+    const admin = isAdminUtil(id);
     if (!admin) {
         return response.status(403).send('You have to be admin');
     }
