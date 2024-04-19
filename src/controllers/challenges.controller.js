@@ -1,7 +1,7 @@
 const fs = require('fs');
 const yaml = require('js-yaml');
 const pool = require('../services/db.service');
-const isAdminUtil = require('../utils/isAdminUtil');
+const isAdmin = require('../utils/isAdmin');
 const logSubmit = require('../utils/logSubmit');
 
 const competitionConf = yaml.load(fs.readFileSync(process.env.SOK_CONFIG, 'utf8'));
@@ -55,7 +55,7 @@ const compAnswers = async (chall, answer, usrId) => {
         const endTime = new Date(Date.parse(competitionConf.endTime));
         const currentTime = new Date().fixZone();
 
-        const admin = await isAdminUtil(usrId);
+        const admin = await isAdmin(usrId);
         if (admin) {
             if (chall.answer === answer) {
                 return { correct: true, info: '' };
@@ -93,7 +93,7 @@ const compAnswers = async (chall, answer, usrId) => {
 
 const getCurrent = async (request, response) => {
     const { id } = request.body;
-    const admin = await isAdminUtil(id);
+    const admin = await isAdmin(id);
     const startTime = new Date(Date.parse(competitionConf.startTime));
     const currentTime = new Date().fixZone();
 
@@ -117,7 +117,7 @@ const getInactive = async (request, response) => {
     if (!id) {
         return response.status(403).send('Not permited!');
     }
-    const admin = await isAdminUtil(id);
+    const admin = await isAdmin(id);
     if (!admin) {
         return response.status(403).send('Not permited');
     }
@@ -139,7 +139,7 @@ const getById = async (request, response) => {
     const startTime = new Date(Date.parse(competitionConf.startTime));
     const currentTime = new Date().fixZone();
 
-    const admin = await isAdminUtil(id);
+    const admin = await isAdmin(id);
     let tmp = " AND start <= now() AT TIME ZONE 'CEST'";
     if (admin) {
         tmp = '';
@@ -190,7 +190,7 @@ const sendAnswer = async (request, response) => {
 const correctAnswer = async (request, response) => {
     const { id } = request.body;
     const { challId } = request.query;
-    const admin = await isAdminUtil(id);
+    const admin = await isAdmin(id);
     if (!admin) {
         return response.status(403).send('You have to be admin');
     }
@@ -209,7 +209,7 @@ const correctAnswer = async (request, response) => {
 const add = async (request, response) => {
     const { id, title, content, author, points, answer, start } = request.body;
 
-    const admin = await isAdminUtil(id);
+    const admin = await isAdmin(id);
     if (!admin) {
         return response.status(403).send('You have to be admin');
     }
@@ -229,7 +229,7 @@ const add = async (request, response) => {
 const edit = async (request, response) => {
     const { id, title, content, author, points, answer, solves, start, challId } = request.body;
 
-    const admin = await isAdminUtil(id);
+    const admin = await isAdmin(id);
     if (!admin) {
         return response.status(403).send('You have to be admin');
     }
@@ -249,7 +249,7 @@ const edit = async (request, response) => {
 const remove = async (request, response) => {
     const { id, challId } = request.body;
 
-    const admin = await isAdminUtil(id);
+    const admin = await isAdmin(id);
     if (!admin) {
         return response.status(403).send('You have to be admin');
     }

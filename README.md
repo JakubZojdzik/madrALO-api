@@ -64,7 +64,7 @@ To get started with SOK API, follow these steps:
 
 Docker Compose will run the following containers:
 
--   **api** - The API server on `3000` port.
+-   **api** - The API server on `8080` port.
 -   **postgres** - PostgreSQL database server on port specified in `PG_PORT` environment variable.
 -   **pgadmin** - pgAdmin web interface on port `5050`.
 

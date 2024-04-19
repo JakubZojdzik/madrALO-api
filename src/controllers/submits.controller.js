@@ -1,9 +1,9 @@
 const pool = require('../services/db.service');
-const isAdminUtil = require('../utils/isAdminUtil');
+const isAdmin = require('../utils/isAdmin');
 
 const getAll = async (request, response) => {
     const { id } = request.body;
-    const admin = await isAdminUtil(id);
+    const admin = await isAdmin(id);
     if (!admin) {
         return response.status(403).send('You dont have permissions');
     }
