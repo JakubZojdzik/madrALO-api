@@ -14,8 +14,16 @@ const getTimeRange = (request, response) => {
     response.status(200).send({ start: competitionConf.startTime, end: competitionConf.endTime });
 };
 
+const getFreeze = (request, response) => {
+    response.status(200).send(competitionConf.freeze);
+};
+
+const getFreezeTime = (request, response) => {
+    response.status(200).send(competitionConf.freezeTime);
+};
+
 const edit = async (request, response) => {
-    const { id, title, rules, start, end } = request.body;
+    const { id, title, rules, start, end, freeze, freezeTime } = request.body;
 
     const admin = await isAdminUtil(id);
     if (!admin) {
@@ -25,6 +33,8 @@ const edit = async (request, response) => {
     competitionConf.rules = rules;
     competitionConf.startTime = start;
     competitionConf.endTime = end;
+    competitionConf.freeze = freeze;
+    competitionConf.freezeTime = freezeTime;
     fs.writeFileSync(process.env.SOK_CONFIG, yaml.dump(competitionConf));
     return response.status(201).send('Competition updated');
 };
@@ -64,6 +74,8 @@ module.exports = {
     getTitle,
     getRules,
     getTimeRange,
+    getFreeze,
+    getFreezeTime,
     edit,
     uploadIcon,
     icon,
