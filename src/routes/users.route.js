@@ -7,7 +7,6 @@ const errorHandler = require('../middlewares/errorHandler');
 
 router.use('/solves', authenticateToken);
 router.use('/islogged', authenticateToken);
-router.use('/ranking', authenticateToken);
 router.use('/isAdmin', authenticateToken);
 
 router.get('/solves', errorHandler(usersController.solves));

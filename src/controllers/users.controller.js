@@ -1,14 +1,10 @@
 const bcrypt = require('bcryptjs');
-const fs = require('fs');
-const yaml = require('js-yaml');
 const dotenv = require('dotenv');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const pool = require('../services/db.service');
-const isAdminUtil = require('../utils/isAdminUtil');
 
 dotenv.config();
-const competitionConf = yaml.load(fs.readFileSync(process.env.SOK_CONFIG, 'utf8'));
 
 const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
@@ -177,53 +173,25 @@ const solves = async (request, response) => {
 };
 
 const ranking = async (request, response) => {
-    const { id } = request.body;
-    const admin = await isAdminUtil(id);
-    const freeze = competitionConf.endTime;
-    let dbRes;
-    if (freeze === 'true' && !admin) {
-        const freezeTime = new Date(Date.parse(competitionConf.freezeTime));
-        dbRes = await pool.query(
-            `
-            SELECT
-                u.name,
-                COALESCE(SUM(CASE WHEN s.correct = true THEN c.points ELSE -1 END), 0) AS points
-            FROM
-                users u
-            JOIN
-                submits s ON u.id = s.usr_id
-            JOIN
-                challenges c ON s.chall_id = c.id
-            WHERE
-                admin = 0 AND verified = true AND sent <= $1
-            GROUP BY
-                u.id, u.name
-            ORDER BY
-                points DESC, MAX(s.sent) ASC, u.name;
-            `,
-            [freezeTime.toISOString()],
-        );
-    } else {
-        dbRes = await pool.query(
-            `
-            SELECT
-                u.name,
-                COALESCE(SUM(CASE WHEN s.correct = true THEN c.points ELSE -1 END), 0) AS points
-            FROM
-                users u
-            JOIN
-                submits s ON u.id = s.usr_id
-            JOIN
-                challenges c ON s.chall_id = c.id
-            WHERE
-                admin = 0 AND verified = true
-            GROUP BY
-                u.id, u.name
-            ORDER BY
-                points DESC, MAX(s.sent) ASC, u.name;
-            `,
-        );
-    }
+    const dbRes = await pool.query(
+        `
+        SELECT
+            u.name,
+            COALESCE(SUM(CASE WHEN s.correct = true THEN c.points ELSE -1 END), 0) AS points
+        FROM
+            users u
+        JOIN
+            submits s ON u.id = s.usr_id
+        JOIN
+            challenges c ON s.chall_id = c.id
+        WHERE
+            admin = 0 AND verified = true
+        GROUP BY
+            u.id, u.name
+        ORDER BY
+            points DESC, MAX(s.sent) ASC, u.name;
+        `,
+    );
     const dbRows = dbRes.rows;
     for (let i = 0; i < dbRes.rows.length; i += 1) {
         dbRows[i].position = i + 1;
