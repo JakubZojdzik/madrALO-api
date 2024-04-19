@@ -2,7 +2,7 @@ const fs = require('fs');
 const yaml = require('js-yaml');
 const multer = require('multer');
 const path = require('path');
-const isAdmin = require('../utils/isAdmin');
+const isAdminUtil = require('../utils/isAdminUtil');
 
 const competitionConf = yaml.load(fs.readFileSync(process.env.SOK_CONFIG, 'utf8'));
 
@@ -14,10 +14,18 @@ const getTimeRange = (request, response) => {
     response.status(200).send({ start: competitionConf.startTime, end: competitionConf.endTime });
 };
 
-const edit = async (request, response) => {
-    const { id, title, rules, start, end } = request.body;
+const getFreeze = (request, response) => {
+    response.status(200).send(competitionConf.freeze);
+};
 
-    const admin = await isAdmin(id);
+const getFreezeTime = (request, response) => {
+    response.status(200).send(competitionConf.freezeTime);
+};
+
+const edit = async (request, response) => {
+    const { id, title, rules, start, end, freeze, freezeTime } = request.body;
+
+    const admin = await isAdminUtil(id);
     if (!admin) {
         return response.status(403).send('You dont have permissions');
     }
@@ -25,6 +33,8 @@ const edit = async (request, response) => {
     competitionConf.rules = rules;
     competitionConf.startTime = start;
     competitionConf.endTime = end;
+    competitionConf.freeze = freeze;
+    competitionConf.freezeTime = freezeTime;
     fs.writeFileSync(process.env.SOK_CONFIG, yaml.dump(competitionConf));
     return response.status(201).send('Competition updated');
 };
@@ -43,7 +53,7 @@ const upload = multer({ storage });
 const uploadIcon = async (request, response) => {
     const { id } = request.body;
 
-    const admin = await isAdmin(id);
+    const admin = await isAdminUtil(id);
     if (!admin) {
         return response.status(403).send('You dont have permissions');
     }
@@ -64,6 +74,8 @@ module.exports = {
     getTitle,
     getRules,
     getTimeRange,
+    getFreeze,
+    getFreezeTime,
     edit,
     uploadIcon,
     icon,

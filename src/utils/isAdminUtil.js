@@ -1,6 +1,6 @@
 const pool = require('../services/db.service');
 
-const isAdmin = async (usrId) => {
+const isAdminUtil = async (usrId) => {
     const dbRes = await pool.query('SELECT admin FROM users WHERE id=$1 AND verified = true', [usrId]);
     if (!dbRes || !dbRes.rows || !dbRes.rows.length) {
         return false;
@@ -8,4 +8,4 @@ const isAdmin = async (usrId) => {
     return dbRes.rows[0].admin === 2;
 };
 
-module.exports = isAdmin;
+module.exports = isAdminUtil;
