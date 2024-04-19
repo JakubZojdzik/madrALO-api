@@ -11,6 +11,8 @@ router.use('/uploadIcon', authenticateToken);
 router.get('/title', errorHandler(competitionController.getTitle));
 router.get('/rules', errorHandler(competitionController.getRules));
 router.get('/timeRange', errorHandler(competitionController.getTimeRange));
+router.get('/freeze', errorHandler(competitionController.getFreeze));
+router.get('/freezeTime', errorHandler(competitionController.getFreezeTime));
 router.get('/icon', errorHandler(competitionController.icon));
 
 router.post('/edit', errorHandler(competitionController.edit));
