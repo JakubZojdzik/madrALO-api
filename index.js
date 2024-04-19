@@ -9,7 +9,7 @@ const submitsRouter = require('./src/routes/submits.route');
 const competitionRouter = require('./src/routes/competition.route');
 
 const app = express();
-const port = 8080;
+const port = 3000;
 
 app.use(cors());
 app.use(
