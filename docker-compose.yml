@@ -1,3 +1,5 @@
+version: '3.9'
+
 services:
     api:
         restart: on-failure
@@ -7,7 +9,7 @@ services:
         depends_on:
             - postgres
         ports:
-            - 3000:3000
+            - 8080:8080
         volumes:
             - ./:/app
 

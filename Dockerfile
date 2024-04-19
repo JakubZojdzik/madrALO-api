@@ -12,6 +12,6 @@ COPY ./competition.yaml /etc/sok/
 
 ENV SOK_CONFIG=/etc/sok/competition.yaml
 
-EXPOSE 3000
+EXPOSE 8080
 
 CMD npm start
