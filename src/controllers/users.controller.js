@@ -179,7 +179,7 @@ const solves = async (request, response) => {
 const ranking = async (request, response) => {
     const { id } = request.body;
     const admin = await isAdminUtil(id);
-    const freeze = competitionConf.endTime;
+    const { freeze } = competitionConf;
     let dbRes;
     if (freeze === 'true' && !admin) {
         const freezeTime = new Date(Date.parse(competitionConf.freezeTime));
