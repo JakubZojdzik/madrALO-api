@@ -9,11 +9,13 @@ router.use('/solves', authenticateToken);
 router.use('/islogged', authenticateToken);
 router.use('/ranking', authenticateToken);
 router.use('/isAdmin', authenticateToken);
+router.use('/usersPoints', authenticateToken);
 
 router.get('/solves', errorHandler(usersController.solves));
 router.get('/islogged', errorHandler(usersController.isLogged));
 router.get('/ranking', errorHandler(usersController.ranking));
 router.get('/isAdmin', errorHandler(usersController.isAdmin));
+router.get('/usersPoints', errorHandler(usersController.usersPoints));
 
 router.post('/verify', errorHandler(usersController.verifyRegistration));
 router.post('/verifyPass', errorHandler(usersController.verifyPasswordChange));
