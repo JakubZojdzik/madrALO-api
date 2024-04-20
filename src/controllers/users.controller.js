@@ -8,7 +8,6 @@ const pool = require('../services/db.service');
 const isAdminUtil = require('../utils/isAdminUtil');
 
 dotenv.config();
-const competitionConf = yaml.load(fs.readFileSync(process.env.SOK_CONFIG, 'utf8'));
 
 const transporter = nodemailer.createTransport({
     host: process.env.SMTP_HOST,
@@ -23,7 +22,6 @@ const transporter = nodemailer.createTransport({
 const signToken = (username, expTime) => jwt.sign(username, process.env.TOKEN_SECRET, { expiresIn: expTime });
 
 const sendMail = (destination, subject, text, html) => {
-    console.log('wysylam', html);
     const message = {
         from: process.env.SMTP_FROM,
         to: destination,
@@ -179,9 +177,9 @@ const solves = async (request, response) => {
 const ranking = async (request, response) => {
     const { id } = request.body;
     const admin = await isAdminUtil(id);
-    const { freeze } = competitionConf;
+    const competitionConf = yaml.load(fs.readFileSync(process.env.SOK_CONFIG, 'utf8'));
     let dbRes;
-    if (freeze === 'true' && !admin) {
+    if (competitionConf.freeze === 'true' && !admin) {
         const freezeTime = new Date(Date.parse(competitionConf.freezeTime));
         dbRes = await pool.query(
             `
@@ -254,7 +252,7 @@ const usersPoints = async (reuqest, response) => {
     if (!dbRes.rowCount) {
         return response.status(200).send(0);
     }
-    return response.status(200).send(dbRes[0].points);
+    return response.status(200).send(dbRes.rows[0].points);
 };
 
 const isAdmin = async (request, response) => {
