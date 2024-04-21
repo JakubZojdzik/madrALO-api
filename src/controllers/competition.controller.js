@@ -15,8 +15,7 @@ const getTimeRange = (request, response) => {
 };
 
 const getFreeze = (request, response) => {
-    const freezeDate = new Date(Date.parse(competitionConf.endTime));
-    response.status(200).send(competitionConf.freeze && freezeDate < new Date());
+    response.status(200).send(competitionConf.freeze);
 };
 
 const getFreezeTime = (request, response) => {
