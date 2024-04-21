@@ -24,7 +24,7 @@ const timeToSubmit = async (usrId) => {
         `
         WITH diff AS (
             SELECT
-                submitted - NOW() AT TIME ZONE 'CEST' + INTERVAL '10 minutes' AS difftime
+                submitted - NOW() + INTERVAL '10 minutes' AS difftime
             from
                 users
             WHERE
@@ -74,13 +74,13 @@ const compAnswers = async (chall, answer, usrId) => {
                 return { correct: true, info: '' };
             }
 
-            await pool.query("UPDATE users SET points=points-1, submitted=now() AT TIME ZONE 'CEST' WHERE id=$1 AND verified = true", [usrId]);
+            await pool.query('UPDATE users SET points = points-1, submitted = now() WHERE id = $1 AND verified = true', [usrId]);
             return { correct: false, info: 'Przed nastepną odpowiedzią musisz odczekać 10 min' };
         }
 
         // after competition
         if (chall.answer === answer) {
-            await pool.query('UPDATE users SET solves=array_append(solves,$1) WHERE id=$2 AND verified = true', [chall.id, usrId]);
+            await pool.query('UPDATE users SET solves = array_append(solves,$1) WHERE id = $2 AND verified = true', [chall.id, usrId]);
             return { correct: true, info: '' };
         }
 
@@ -101,7 +101,7 @@ const getCurrent = async (request, response) => {
         return response.status(200).send([]);
     }
     return pool.query(
-        "SELECT id, title, content, author, points, solves, start FROM challenges WHERE start <= now() AT TIME ZONE 'CEST' ORDER BY start DESC, points DESC",
+        'SELECT id, title, content, author, points, solves, start FROM challenges WHERE start <= now() ORDER BY start DESC, points DESC',
         (error, results) => {
             if (error) {
                 console.error(error);
@@ -122,7 +122,7 @@ const getInactive = async (request, response) => {
         return response.status(403).send('Not permited');
     }
     return pool.query(
-        "SELECT id, title, content, author, points, solves, start FROM challenges WHERE start > now() AT TIME ZONE 'CEST' ORDER BY start DESC, points DESC",
+        'SELECT id, title, content, author, points, solves, start FROM challenges WHERE start > now() ORDER BY start DESC, points DESC',
         (error, results) => {
             if (error) {
                 console.error(error);
@@ -140,7 +140,7 @@ const getById = async (request, response) => {
     const currentTime = new Date().fixZone();
 
     const admin = await isAdminUtil(id);
-    let tmp = " AND start <= now() AT TIME ZONE 'CEST'";
+    let tmp = ' AND start <= now()';
     if (admin) {
         tmp = '';
     } else if (startTime >= currentTime) {
@@ -176,7 +176,7 @@ const sendAnswer = async (request, response) => {
         return response.status(200).send(false);
     }
     const dbRes = await pool.query(
-        "SELECT id, title, content, author, points, answer, solves, start FROM challenges WHERE id=$1 AND start <= now() AT TIME ZONE 'CEST'",
+        'SELECT id, title, content, author, points, answer, solves, start FROM challenges WHERE id=$1 AND start <= now()',
         [challId],
     );
     if (!dbRes.rowCount) {
