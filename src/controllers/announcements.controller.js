@@ -2,7 +2,7 @@ const pool = require('../services/db.service');
 const isAdminUtil = require('../utils/isAdminUtil');
 
 const getCurrent = async (request, response) => {
-    const results = await pool.query("SELECT * FROM announcements WHERE added <= now() AT TIME ZONE 'CEST' ORDER BY added DESC");
+    const results = await pool.query('SELECT * FROM announcements WHERE added <= now() ORDER BY added DESC');
     return response.status(200).send(results.rows);
 };
 
@@ -17,7 +17,7 @@ const getInactive = async (request, response) => {
         return response.status(403).send('Not permitted');
     }
     return pool
-        .query("SELECT * FROM announcements WHERE added > now() AT TIME ZONE 'CEST' ORDER BY added DESC")
+        .query('SELECT * FROM announcements WHERE added > now() ORDER BY added DESC')
         .then((results) => response.status(200).send(results.rows))
         .catch((error) => {
             console.error(error);
@@ -29,12 +29,10 @@ const getById = async (request, response) => {
     const { id } = request.body;
     const { annId } = request.query;
 
-    let tmp = " AND added <= now() AT TIME ZONE 'CEST'";
+    let tmp = ' AND added <= now()';
     const admin = await isAdminUtil(id);
     if (admin) {
         tmp = '';
-    } else if (new Date(Date.parse(process.env.COMPETITION_START)) >= new Date().fixZone()) {
-        return response.status(400).send('Challenge does not exist');
     }
 
     return pool.query(`SELECT id, title, content, author, added FROM announcements WHERE id = $1${tmp}`, [annId], (error, dbRes) => {
