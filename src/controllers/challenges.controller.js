@@ -44,16 +44,10 @@ const timeToSubmit = async (usrId) => {
     return dbRes.rows[0].minutes;
 };
 
-// eslint-disable-next-line no-extend-native
-Date.prototype.fixZone = function fn() {
-    this.setHours(this.getHours() + 2);
-    return this;
-};
-
 const compAnswers = async (chall, answer, usrId) => {
     try {
         const endTime = new Date(Date.parse(competitionConf.endTime));
-        const currentTime = new Date().fixZone();
+        const currentTime = new Date();
 
         const admin = await isAdminUtil(usrId);
         if (admin) {
@@ -95,7 +89,7 @@ const getCurrent = async (request, response) => {
     const { id } = request.body;
     const admin = await isAdminUtil(id);
     const startTime = new Date(Date.parse(competitionConf.startTime));
-    const currentTime = new Date().fixZone();
+    const currentTime = new Date();
 
     if (startTime >= currentTime && !admin) {
         return response.status(200).send([]);
@@ -137,7 +131,7 @@ const getById = async (request, response) => {
     const { id } = request.body;
     const { challId } = request.query;
     const startTime = new Date(Date.parse(competitionConf.startTime));
-    const currentTime = new Date().fixZone();
+    const currentTime = new Date();
 
     const admin = await isAdminUtil(id);
     let tmp = ' AND start <= now()';
