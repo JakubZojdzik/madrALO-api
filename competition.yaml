@@ -1,6 +1,7 @@
 title: mądrALO
 rules: <p>zasady 123123</p><p><br></p><p>123</p><p>zasady</p>
-startTime: 2024-04-12T20:55
-endTime: 2024-04-24T20:55
-freezeTime: 2024-04-22T00:00
-freeze: 'true'
+startTime: '2024-04-12T18:55:00.000Z'
+endTime: '2024-04-30T18:55:00.000Z'
+freezeTime: '2024-04-21T22:00:00.000Z'
+freeze: 'false'
+timePenalty: 600 # seconds

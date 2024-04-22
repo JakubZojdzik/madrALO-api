@@ -4,8 +4,6 @@ const pool = require('../services/db.service');
 const isAdminUtil = require('../utils/isAdminUtil');
 const logSubmit = require('../utils/logSubmit');
 
-const competitionConf = yaml.load(fs.readFileSync(process.env.SOK_CONFIG, 'utf8'));
-
 const isSolved = async (usrId, challId) => {
     try {
         const dbRes = await pool.query('SELECT ($1 = ANY ((SELECT solves FROM users WHERE id=$2 AND verified=true)::int[]))::text', [challId, usrId]);
@@ -20,32 +18,23 @@ const isSolved = async (usrId, challId) => {
 };
 
 const timeToSubmit = async (usrId) => {
+    const competitionConf = yaml.load(fs.readFileSync(process.env.SOK_CONFIG, 'utf8'));
+    const { timePenalty } = competitionConf;
+
     const dbRes = await pool.query(
         `
-        WITH diff AS (
-            SELECT
-                submitted - NOW() + INTERVAL '10 minutes' AS difftime
-            from
-                users
-            WHERE
-                id=$1
-        )
-
-        SELECT
-            CASE
-                WHEN difftime <= INTERVAL '0 seconds' THEN CEIL(EXTRACT(EPOCH FROM (INTERVAL '0 minutes'))/60)
-            ELSE
-                CEIL(EXTRACT(EPOCH FROM (difftime))/60)
-            END AS minutes
-        FROM diff
+        SELECT EXTRACT(EPOCH FROM (NOW() - MAX(s.sent))) seconds
+        FROM submits s
+        WHERE s.correct = false AND s.usr_id = $1
     `,
         [usrId],
     );
-    return dbRes.rows[0].minutes;
+    return Math.max(0, Math.round(timePenalty - dbRes.rows[0].seconds));
 };
 
 const compAnswers = async (chall, answer, usrId) => {
     try {
+        const competitionConf = yaml.load(fs.readFileSync(process.env.SOK_CONFIG, 'utf8'));
         const endTime = new Date(Date.parse(competitionConf.endTime));
         const currentTime = new Date();
 
@@ -60,15 +49,10 @@ const compAnswers = async (chall, answer, usrId) => {
         // during competition
         if (endTime >= currentTime) {
             if (chall.answer === answer) {
-                await pool.query(
-                    'UPDATE users SET points=points+$1, solves=array_append(solves,$2), submitted_ac=now() WHERE id=$3 AND verified = true',
-                    [chall.points, chall.id, usrId],
-                );
+                await pool.query('UPDATE users SET solves=array_append(solves,$2) WHERE id=$3 AND verified = true', [chall.points, chall.id, usrId]);
                 await pool.query('UPDATE challenges SET solves=solves+1 WHERE id=$1', [chall.id]);
                 return { correct: true, info: '' };
             }
-
-            await pool.query('UPDATE users SET points = points-1, submitted = now() WHERE id = $1 AND verified = true', [usrId]);
             return { correct: false, info: 'Przed nastepną odpowiedzią musisz odczekać 10 min' };
         }
 
@@ -88,6 +72,7 @@ const compAnswers = async (chall, answer, usrId) => {
 const getCurrent = async (request, response) => {
     const { id } = request.body;
     const admin = await isAdminUtil(id);
+    const competitionConf = yaml.load(fs.readFileSync(process.env.SOK_CONFIG, 'utf8'));
     const startTime = new Date(Date.parse(competitionConf.startTime));
     const currentTime = new Date();
 
@@ -130,6 +115,7 @@ const getInactive = async (request, response) => {
 const getById = async (request, response) => {
     const { id } = request.body;
     const { challId } = request.query;
+    const competitionConf = yaml.load(fs.readFileSync(process.env.SOK_CONFIG, 'utf8'));
     const startTime = new Date(Date.parse(competitionConf.startTime));
     const currentTime = new Date();
 
@@ -154,15 +140,15 @@ const getById = async (request, response) => {
 
 const sendAnswer = async (request, response) => {
     const { id, challId, answer } = request.body;
-    if (answer.length >= 100) {
+    if (answer.length > 100) {
         return response.status(400).send('Za długa odpowiedź!');
     }
     if (answer.length === 0) {
         return response.status(400).send('Wpisz odpowiedź!');
     }
     const t = await timeToSubmit(id);
-    if (t !== '0') {
-        return response.status(400).send(`Musisz odczekać jeszcze ${t} min`);
+    if (t > 0) {
+        return response.status(400).send(`Musisz odczekać jeszcze ${Math.round(t / 60)} min`);
     }
     const v = await isSolved(id, challId);
     if (v !== 'true' && v !== 'false') throw v;

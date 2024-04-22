@@ -154,6 +154,35 @@ const login = async (request, response) => {
     return response.status(401).send('Nieprawidłowe dane!');
 };
 
+const byId = async (request, response) => {
+    const { id, userId } = request.body;
+    if (!id) {
+        return response.status(403).send('Not permited!');
+    }
+    const admin = await isAdminUtil(id);
+    if (!admin) {
+        return response.status(403).send('Not permited!');
+    }
+
+    const competitionConf = yaml.load(fs.readFileSync(process.env.SOK_CONFIG, 'utf8'));
+    const competitionEnd = new Date(Date.parse(competitionConf.endTime));
+
+    const dbRes = await pool.query(
+        `
+        SELECT
+            u.name, u.email, u.admin, COALESCE(SUM(CASE WHEN s.correct = true THEN c.points ELSE -1 END), 0) punkty
+        FROM
+            (submits s RIGHT JOIN users u ON s.usr_id = u.id) JOIN challenges c ON c.id = s.chall_id
+        WHERE
+            u.id = $1 AND u.verified = true AND s.sent <= $2
+        GROUP BY
+            u.id
+        `,
+        [userId, competitionEnd.toISOString()],
+    );
+    return dbRes.rows[0];
+};
+
 const isLogged = (request, response) => {
     const { id } = request.body;
     if (id) {
@@ -194,7 +223,7 @@ const ranking = async (request, response) => {
             JOIN
                 challenges c ON s.chall_id = c.id
             WHERE
-                admin = 0 AND verified = true AND sent <= $1 AND sent <= $2
+                u.admin = 0 AND u.verified = true AND s.sent <= $1 AND s.sent <= $2
             GROUP BY
                 u.id, u.name
             ORDER BY
@@ -215,7 +244,7 @@ const ranking = async (request, response) => {
             JOIN
                 challenges c ON s.chall_id = c.id
             WHERE
-                admin = 0 AND verified = true AND sent <= $1
+                u.admin = 0 AND u.verified = true AND s.sent <= $1
             GROUP BY
                 u.id, u.name
             ORDER BY
@@ -246,9 +275,7 @@ const usersPoints = async (reuqest, response) => {
         JOIN
             challenges c ON s.chall_id = c.id
         WHERE
-            admin = 0 AND verified = true AND u.id=$1
-        ORDER BY
-            points DESC, MAX(s.sent) ASC;`,
+            admin = 0 AND verified = true AND u.id=$1`,
         [id],
     );
     if (!dbRes.rowCount) {
@@ -280,4 +307,5 @@ module.exports = {
     changePassword,
     verifyPasswordChange,
     usersPoints,
+    byId,
 };

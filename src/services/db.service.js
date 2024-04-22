@@ -17,11 +17,11 @@ pool.query(
     `CREATE TABLE IF NOT EXISTS public.announcements
     (
         id integer NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1 ),
-        title text COLLATE pg_catalog."default",
-        author text COLLATE pg_catalog."default",
+        title text COLLATE pg_catalog."default" CHECK (LENGTH(title) <= 40),
+        author text COLLATE pg_catalog."default" CHECK (LENGTH(author) <= 30),
         content text COLLATE pg_catalog."default",
-        added timestamp without time zone NOT NULL DEFAULT now(),
-        CONSTRAINT announcements_pkey PRIMARY KEY (id)
+        added timestamp without time zone NOT NULL DEFAULT NOW(),
+        PRIMARY KEY (id)
     )`,
     (error) => {
         if (error) {
@@ -34,14 +34,14 @@ pool.query(
     `CREATE TABLE IF NOT EXISTS public.challenges
     (
         id integer NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1 ),
-        title text COLLATE pg_catalog."default" NOT NULL,
+        title text COLLATE pg_catalog."default" NOT NULL CHECK (LENGTH(title) <= 40),
         content text COLLATE pg_catalog."default" NOT NULL,
-        author text COLLATE pg_catalog."default",
+        author text COLLATE pg_catalog."default" CHECK (LENGTH(author) <= 30),
         points integer NOT NULL,
-        answer text COLLATE pg_catalog."default" NOT NULL,
+        answer text COLLATE pg_catalog."default" NOT NULL CHECK (LENGTH(answer) <= 100),
         solves integer NOT NULL DEFAULT 0,
-        start timestamp without time zone NOT NULL DEFAULT now(),
-        CONSTRAINT challanges_pkey PRIMARY KEY (id)
+        start timestamp without time zone NOT NULL DEFAULT NOW(),
+        PRIMARY KEY (id)
     )`,
     (error) => {
         if (error) {
@@ -56,10 +56,12 @@ pool.query(
         id integer NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1 ),
         usr_id integer NOT NULL,
         chall_id integer NOT NULL,
-        sent timestamp without time zone NOT NULL,
-        answer text COLLATE pg_catalog."default" NOT NULL,
+        sent timestamp without time zone NOT NULL DEFAULT NOW(),
+        answer text COLLATE pg_catalog."default" NOT NULL CHECK (LENGTH(answer) <= 100),
         correct boolean NOT NULL,
-        CONSTRAINT submits_pkey PRIMARY KEY (id)
+        PRIMARY KEY (id),
+        FOREIGN KEY (usr_id) REFERENCES public.users (id),
+        FOREIGN KEY (chall_id) REFERENCES public.challenges (id)
     )`,
     (error) => {
         if (error) {
@@ -72,16 +74,13 @@ pool.query(
     `CREATE TABLE IF NOT EXISTS public.users
     (
         id integer NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 2147483647 CACHE 1 ),
-        name text COLLATE pg_catalog."default",
-        email text COLLATE pg_catalog."default",
+        name text COLLATE pg_catalog."default" UNIQUE CHECK (LENGTH(name) >= 5 AND LENGTH(name) <= 12),
+        email text COLLATE pg_catalog."default" UNIQUE,
         password text COLLATE pg_catalog."default",
-        points integer NOT NULL DEFAULT 0,
         solves integer[] NOT NULL DEFAULT ARRAY[]::integer[],
         verified boolean NOT NULL DEFAULT false,
-        submitted timestamp without time zone NOT NULL DEFAULT '2005-04-02 21:37:00'::timestamp without time zone,
         admin integer NOT NULL DEFAULT 0,
-        submitted_ac timestamp without time zone NOT NULL DEFAULT '2005-04-02 21:37:00'::timestamp without time zone,
-        CONSTRAINT users_pkey PRIMARY KEY (id)
+        PRIMARY KEY (id)
     )`,
     (error) => {
         if (error) {
