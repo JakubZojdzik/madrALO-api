@@ -49,15 +49,10 @@ const compAnswers = async (chall, answer, usrId) => {
         // during competition
         if (endTime >= currentTime) {
             if (chall.answer === answer) {
-                await pool.query(
-                    'UPDATE users SET points=points+$1, solves=array_append(solves,$2), submitted_ac=now() WHERE id=$3 AND verified = true',
-                    [chall.points, chall.id, usrId],
-                );
+                await pool.query('UPDATE users SET solves=array_append(solves,$2) WHERE id=$3 AND verified = true', [chall.points, chall.id, usrId]);
                 await pool.query('UPDATE challenges SET solves=solves+1 WHERE id=$1', [chall.id]);
                 return { correct: true, info: '' };
             }
-
-            await pool.query('UPDATE users SET points = points-1, submitted = now() WHERE id = $1 AND verified = true', [usrId]);
             return { correct: false, info: 'Przed nastepną odpowiedzią musisz odczekać 10 min' };
         }
 

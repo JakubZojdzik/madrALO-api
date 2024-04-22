@@ -170,9 +170,9 @@ const byId = async (request, response) => {
     const dbRes = await pool.query(
         `
         SELECT
-            COALESCE(SUM(CASE WHEN s.correct = true THEN c.points ELSE -1 END), 0) punkty
+            u.name, u.email, u.admin, COALESCE(SUM(CASE WHEN s.correct = true THEN c.points ELSE -1 END), 0) punkty
         FROM
-            (submits s JOIN users u ON s.usr_id = u.id) JOIN challenges c ON c.id = s.chall_id
+            (submits s RIGHT JOIN users u ON s.usr_id = u.id) JOIN challenges c ON c.id = s.chall_id
         WHERE
             u.id = $1 AND u.verified = true AND s.sent <= $2
         GROUP BY
@@ -275,9 +275,7 @@ const usersPoints = async (reuqest, response) => {
         JOIN
             challenges c ON s.chall_id = c.id
         WHERE
-            admin = 0 AND verified = true AND u.id=$1
-        ORDER BY
-            points DESC, MAX(s.sent) ASC;`,
+            admin = 0 AND verified = true AND u.id=$1`,
         [id],
     );
     if (!dbRes.rowCount) {

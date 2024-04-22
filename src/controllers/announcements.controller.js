@@ -1,6 +1,9 @@
 const pool = require('../services/db.service');
 const isAdminUtil = require('../utils/isAdminUtil');
 
+const titleMaxLength = 40;
+const authorMaxLength = 30;
+
 const getCurrent = async (request, response) => {
     const results = await pool.query('SELECT * FROM announcements WHERE added <= now() ORDER BY added DESC');
     return response.status(200).send(results.rows);
@@ -49,10 +52,16 @@ const getById = async (request, response) => {
 
 const add = async (request, response) => {
     const { id, title, content, author, added } = request.body;
+
     const admin = await isAdminUtil(id);
     if (!admin) {
         return response.status(403).send('You have to be admin');
     }
+
+    if (title.length > titleMaxLength || author.length > authorMaxLength) {
+        return response.status(201).send('Invalid input');
+    }
+
     return pool.query(
         'INSERT INTO announcements (title, author, content, added) VALUES ($1, $2, $3, $4)',
         [title, author, content, added],
@@ -72,6 +81,11 @@ const edit = async (request, response) => {
     if (!admin) {
         return response.status(403).send('You have to be admin');
     }
+
+    if (title.length > titleMaxLength || author.length > authorMaxLength) {
+        return response.status(201).send('Invalid input');
+    }
+
     return pool.query(
         'UPDATE announcements SET title=$1, content=$2, author=$3, added=$4 WHERE id=$5',
         [title, content, author, added, annId],
